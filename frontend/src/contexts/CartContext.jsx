@@ -56,22 +56,20 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("cart", JSON.stringify(state.items));
   }, [state.items]);
 
-  const addToCart = (product) =>
-    dispatch({ type: "ADD_ITEM", payload: product });
+  const addToCart = (product) => {
+    const normalizedProduct = {
+      ...product,
+      price: Number(product.price) || 0,
+      stock: Number(product.stock) || 0,
+    };
+    dispatch({ type: "ADD_ITEM", payload: normalizedProduct });
+  };
   const removeFromCart = (id) => dispatch({ type: "REMOVE_ITEM", payload: id });
   const updateQuantity = (id, quantity) =>
     dispatch({ type: "UPDATE_QUANTITY", payload: { id, quantity } });
   const clearCart = () => dispatch({ type: "CLEAR_CART" });
 
-  const ProductList = () => {
-    const { addToCart } = useCard();
-    const handleOrderClick = (product) => {
-      addToCart(product, 1);
-      setSelectedProduct(product);
-      setShowPayment(true);
-    };
-  };
-  return (
+    return (
     <CartContext.Provider
       value={{
         cart: state.items,

@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/db');
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
 
 const Product = sequelize.define('Product', {
   id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
@@ -8,12 +8,12 @@ const Product = sequelize.define('Product', {
   price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
   stock: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   category: { type: DataTypes.ENUM('t-shirt', 'zoe'), allowNull: false },
-  imageUrl: { type: DataTypes.STRING, field: 'image_url' }
+  imageUrl: { type: DataTypes.STRING, field: 'image_url' },
 }, {
   tableName: 'products',
   timestamps: true,
   createdAt: 'created_at',
-  updatedAt: false
+  updatedAt: false,
 });
 
-module.exports = Product;
+export default Product;

@@ -4,7 +4,10 @@ import { Link } from "react-router-dom";
 
 export default function Cart() {
   const { cart, updateQuantity, removeFromCart } = useCart();
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = cart.reduce(
+    (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
+    0,
+  );
 
   if (cart.length === 0) {
     return (

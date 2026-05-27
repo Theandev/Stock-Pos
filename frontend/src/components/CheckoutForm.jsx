@@ -103,7 +103,7 @@ export default function CheckoutForm() {
           <label style={labelStyle}>Full Name</label>
           <input
             type="text"
-            placeholder="John Doe"
+            placeholder="Enter name..."
             required
             onChange={(e) => setForm({ ...form, customerName: e.target.value })}
             style={inputStyle}
@@ -116,7 +116,7 @@ export default function CheckoutForm() {
           <label style={labelStyle}>Email Address</label>
           <input
             type="email"
-            placeholder="you@example.com"
+            placeholder="Enter email..."
             required
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             style={inputStyle}

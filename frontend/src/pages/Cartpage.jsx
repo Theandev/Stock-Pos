@@ -1,9 +1,4 @@
-import dynamic from "next/dynamic";
-
-const Cart = dynamic(() => import("../components/Cart"), {
-  ssr: false,
-  loading: () => <div>Loading cart...</div>,
-});
+import Cart from '../components/Cart';
 
 export default function CartPage() {
   return <Cart />;

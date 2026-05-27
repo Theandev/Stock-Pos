@@ -45,7 +45,7 @@ export default function CartItem({ item, updateQuantity, removeFromCart }) {
             {item.name}
           </h4>
           <p style={{ margin: 0, fontSize: "0.875rem", color: "#4b5563" }}>
-            ${item.price.toFixed(2)}
+            ${Number(item.price || 0).toFixed(2)}
           </p>
           <button
             onClick={() => removeFromCart(item.id)}

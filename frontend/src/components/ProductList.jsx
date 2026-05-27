@@ -1,81 +1,34 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useCart } from "../contexts/CartContext";
+import { fetchProducts } from "../services/api";
 
-const ProductList = (props) => {
+const ProductList = () => {
+  const { addToCart } = useCart();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [cartCount, setCartCount] = useState(0);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [showPayment, setShowPayment] = useState(false);
-
-  const [paymentForm, setPaymentForm] = useState({
-    fullName: "",
-    email: "",
-    idCardNumber: "",
-    bankName: "",
-    accountNumber: "",
-    routingNumber: "",
-  });
-
   useEffect(() => {
-    const fetchProducts = async () => {
+    const loadProducts = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/products");
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
-        setProducts(data);
+        const response = await fetchProducts();
+        setProducts(response.data);
       } catch (err) {
-        console.error("Fetch process broke:", err);
+        console.error("Unable to load products:", err);
         setError(
-          "Could not connect to the backend server. Please verify it is running on port 5000.",
+          "Could not connect to the backend server. Please verify it is running.",
         );
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
+
+    loadProducts();
   }, []);
 
-  const handleOrderClick = (product) => {
-    setCartCount((prev) => prev + 1);
-    setSelectedProduct(product);
-    setShowPayment(true);
-  };
-
-  const handlePaymentSubmit = (e) => {
-    e.preventDefault();
-    alert(
-      `Payment verification submitted successfully for ${selectedProduct.name}!`,
-    );
-    setShowPayment(false);
-    setSelectedProduct(null);
-    setPaymentForm({
-      fullName: "",
-      email: "",
-      idCardNumber: "",
-      bankName: "",
-      accountNumber: "",
-      routingNumber: "",
-    });
-  };
-
-  const inputStyle = {
-    width: "100%",
-    padding: "0.625rem 0.75rem",
-    border: "1px solid #d1d5db",
-    borderRadius: "6px",
-    fontSize: "0.9375rem",
-    boxSizing: "border-box",
-  };
-  const labelStyle = {
-    display: "block",
-    fontSize: "0.875rem",
-    fontWeight: "500",
-    color: "#374151",
-    marginBottom: "0.375rem",
+  const handleAddToCart = (product) => {
+    addToCart(product);
   };
   if (loading) {
     return (
@@ -270,7 +223,7 @@ const ProductList = (props) => {
                 </div>
 
                 <button
-                  onClick={() => handleOrderClick(product)}
+                  onClick={() => handleAddToCart(product)}
                   disabled={isOutOfStock}
                   style={{
                     width: "100%",
@@ -285,7 +238,7 @@ const ProductList = (props) => {
                     transition: "background-color 0.2s",
                   }}
                 >
-                  Order Now
+                  Add to Cart
                 </button>
               </div>
             </div>
@@ -293,221 +246,6 @@ const ProductList = (props) => {
         })}
       </div>
 
-      {showPayment && selectedProduct && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0, 0, 0, 0.4)",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1000,
-            backdropFilter: "blur(4px)",
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: "#ffffff",
-              padding: "2rem",
-              borderRadius: "12px",
-              width: "100%",
-              maxWidth: "480px",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "1.25rem",
-              }}
-            >
-              <h3
-                style={{
-                  margin: 0,
-                  fontSize: "1.25rem",
-                  fontWeight: "700",
-                  color: "#111827",
-                }}
-              >
-                Secure Bank Checkout
-              </h3>
-              <button
-                onClick={() => setShowPayment(false)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: "1.5rem",
-                  cursor: "pointer",
-                  color: "#9ca3af",
-                }}
-              >
-                &times;
-              </button>
-            </div>
-
-            <p
-              style={{
-                margin: "0 0 1.5rem 0",
-                fontSize: "0.9375rem",
-                color: "#4b5563",
-              }}
-            >
-              Purchasing:{" "}
-              <strong style={{ color: "#111827" }}>
-                {selectedProduct.name}
-              </strong>{" "}
-              for{" "}
-              <strong>${parseFloat(selectedProduct.price).toFixed(2)}</strong>
-            </p>
-
-            <form
-              onSubmit={handlePaymentSubmit}
-              style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-            >
-              <div>
-                <label style={labelStyle}>Full Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter your name..."
-                  value={paymentForm.fullName}
-                  onChange={(e) =>
-                    setPaymentForm({ ...paymentForm, fullName: e.target.value })
-                  }
-                  style={inputStyle}
-                />
-              </div>
-
-              <div>
-                <label style={labelStyle}>Email Address</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="Enter your email..."
-                  value={paymentForm.email}
-                  onChange={(e) =>
-                    setPaymentForm({ ...paymentForm, email: e.target.value })
-                  }
-                  style={inputStyle}
-                />
-              </div>
-
-              <div>
-                <label style={labelStyle}>ID Card / Passport Number</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="A12345678"
-                  value={paymentForm.idCardNumber}
-                  onChange={(e) =>
-                    setPaymentForm({
-                      ...paymentForm,
-                      idCardNumber: e.target.value,
-                    })
-                  }
-                  style={inputStyle}
-                />
-              </div>
-
-              <div
-                style={{ borderTop: "1px solid #e5e7eb", margin: "0.5rem 0" }}
-              ></div>
-
-              <div>
-                <label style={labelStyle}>Bank Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Global Trust Bank"
-                  value={paymentForm.bankName}
-                  onChange={(e) =>
-                    setPaymentForm({ ...paymentForm, bankName: e.target.value })
-                  }
-                  style={inputStyle}
-                />
-              </div>
-
-              <div style={{ display: "flex", gap: "1rem" }}>
-                <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>Account Number</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="1234567890"
-                    value={paymentForm.accountNumber}
-                    onChange={(e) =>
-                      setPaymentForm({
-                        ...paymentForm,
-                        accountNumber: e.target.value,
-                      })
-                    }
-                    style={inputStyle}
-                  />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>Routing Number</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="987654321"
-                    value={paymentForm.routingNumber}
-                    onChange={(e) =>
-                      setPaymentForm({
-                        ...paymentForm,
-                        routingNumber: e.target.value,
-                      })
-                    }
-                    style={inputStyle}
-                  />
-                </div>
-              </div>
-
-              <div
-                style={{ display: "flex", gap: "1rem", marginTop: "1.25rem" }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setShowPayment(false)}
-                  style={{
-                    flex: 1,
-                    padding: "0.75rem",
-                    backgroundColor: "#f3f4f6",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "6px",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  style={{
-                    flex: 1,
-                    padding: "0.75rem",
-                    backgroundColor: "#2563eb",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                  }}
-                >
-                  Verify Payment
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

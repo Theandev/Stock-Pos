@@ -2,17 +2,30 @@ import { QueryTypes } from 'sequelize';
 import db from '../config/db.js';
 
 export const getAllProducts = async (req, res) => {
+  const { search } = req.query;
   try {
-    const products = await db.query(
-      `SELECT id, name, description, price, stock, category, image_url AS "imageUrl"
-       FROM public.products 
-       ORDER BY id ASC;`,
-      { type: QueryTypes.SELECT }
-    );
+    let query = `SELECT id, name, description, price, stock, category, image_url AS "imageUrl"
+       FROM public.products`;
+    const replacements = {};
+
+    if (search) {
+      query += ` WHERE LOWER(name) LIKE LOWER(:search)
+        OR LOWER(description) LIKE LOWER(:search)
+        OR LOWER(category) LIKE LOWER(:search)`;
+      replacements.search = `%${search}%`;
+    }
+
+    query += ` ORDER BY id ASC;`;
+
+    const products = await db.query(query, {
+      replacements,
+      type: QueryTypes.SELECT,
+    });
+
     res.status(200).json(products);
   } catch (err) {
     console.error('Database Error:', err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: 'Server error' });
   }
 };
 

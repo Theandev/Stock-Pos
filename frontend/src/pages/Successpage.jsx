@@ -1,27 +1,21 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
-export default function SuccessPage(e) {
-  const { orderId } = useParams<{ orderId: string }>(e);
+export default function SuccessPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isValidSession, setIsValidSession] = useState(false);
+  const orderId = location.state?.orderId;
 
   useEffect(() => {
-    
-    if (!location.state?.fromCheckout) {
+    if (!location.state?.fromCheckout || !orderId) {
       navigate('/', { replace: true });
       return;
     }
 
-  
     setIsValidSession(true);
-
-  
-    localStorage.removeItem('cart'); 
-    
- 
-  }, [location, navigate]);
+    localStorage.removeItem('cart');
+  }, [location, navigate, orderId]);
 
   if (!isValidSession) return null;
 

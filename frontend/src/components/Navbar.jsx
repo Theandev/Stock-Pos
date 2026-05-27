@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useCart } from "../contexts/CartContext";
-import { FaHome, FaShoppingCart, FaTimes, FaSearch } from "react-icons/fa";
+import { FaHome, FaShoppingCart, FaTimes, FaSearch, FaChartBar } from "react-icons/fa";
 
 export default function Navbar() {
   const { cart } = useCart(); 
@@ -13,6 +13,7 @@ export default function Navbar() {
   const [products, setProducts] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isNavLoading, setIsNavLoading] = useState(true);
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   const itemCount = cart
     ? cart.reduce((sum, item) => sum + item.quantity, 0)
@@ -38,13 +39,13 @@ export default function Navbar() {
       setIsSearching(true);
       try {
         const response = await fetch(
-          `/api/products?search=${encodeURIComponent(query.trim())}`
+          `${API_BASE}/products?search=${encodeURIComponent(query.trim())}`
         );
-        if (!response.ok) throw new Error("Server error");
+        if (!response.ok) throw new Error('Server error');
         const data = await response.json();
         setProducts(data);
       } catch (err) {
-        console.error("Database connection error:", err);
+        console.error('Database connection error:', err);
         setProducts([]);
       } finally {
         setIsSearching(false);
@@ -102,6 +103,13 @@ export default function Navbar() {
               aria-label="Home"
             >
               <FaHome className="text-xl sm:text-2xl" />
+            </Link>
+            <Link
+              to="/reports"
+              className="text-[#e0e0e0] no-underline transition-all duration-200 inline-flex items-center h-[38px] text-xl relative cursor-pointer hover:text-white hover:-translate-y-px"
+              aria-label="Order Reports"
+            >
+              <FaChartBar className="text-xl sm:text-2xl" />
             </Link>
             <Link
               to="/cart"
