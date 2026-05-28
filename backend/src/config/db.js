@@ -1,6 +1,6 @@
 import { Sequelize } from "sequelize";
 
-const sequelize = new Sequelize("your database ", "postgres", "your password", {
+const sequelize = new Sequelize("ecommerce_db", "postgres", "123456", {
   host: "localhost",
   port: 5432,
   dialect: "postgres",

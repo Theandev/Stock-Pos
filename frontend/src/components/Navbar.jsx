@@ -1,10 +1,21 @@
-import { useState, useEffect } from "react";
+import React, { useRef, useState, useCallback, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useCart } from "../contexts/CartContext";
-import { FaHome, FaShoppingCart, FaTimes, FaSearch, FaChartBar } from "react-icons/fa";
+import {
+  FaHome,
+  FaShoppingCart,
+  FaTimes,
+  FaSearch,
+  FaChartBar,
+  FaPlus,
+} from "react-icons/fa";
+import LoginModal from "./LoginModal";
+import ProductCreateModal from "./ProductCreateModal";
 
 export default function Navbar() {
-  const { cart } = useCart(); 
+  // Stable hooks order
+  const navRef = useRef(null);
+  const { cart } = useCart();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -13,15 +24,18 @@ export default function Navbar() {
   const [products, setProducts] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isNavLoading, setIsNavLoading] = useState(true);
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [user, setUser] = useState(null);
+
+  const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
   const itemCount = cart
     ? cart.reduce((sum, item) => sum + item.quantity, 0)
     : 0;
 
-  useEffect(() => {
-    setSearchQuery(query);
-  }, [query]);
+  useEffect(() => setSearchQuery(query), [query]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsNavLoading(false), 600);
@@ -39,13 +53,13 @@ export default function Navbar() {
       setIsSearching(true);
       try {
         const response = await fetch(
-          `${API_BASE}/products?search=${encodeURIComponent(query.trim())}`
+          `${API_BASE}/products?search=${encodeURIComponent(query.trim())}`,
         );
-        if (!response.ok) throw new Error('Server error');
+        if (!response.ok) throw new Error("Server error");
         const data = await response.json();
         setProducts(data);
       } catch (err) {
-        console.error('Database connection error:', err);
+        console.error("Database connection error:", err);
         setProducts([]);
       } finally {
         setIsSearching(false);
@@ -53,14 +67,12 @@ export default function Navbar() {
     };
 
     fetchFilteredProducts();
-  }, [query]);
+  }, [query, API_BASE]);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
     setSearchQuery(value);
-    if (!value.trim()) {
-      navigate("/");
-    }
+    if (!value.trim()) navigate("/");
   };
 
   const handleClearSearch = () => {
@@ -75,24 +87,47 @@ export default function Navbar() {
     }
   };
 
+  const openLogin = useCallback(() => setShowAuthModal(true), []);
+
+  const openProductCreate = useCallback(() => setShowProductModal(true), []);
+  const closeProductCreate = useCallback(() => setShowProductModal(false), []);
+
+  const handleSignedIn = useCallback((profile) => {
+    setUser(profile);
+  }, []);
+
+  // Load logged-in user from existing token (best-effort; role is in token payload).
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (payload?.role)
+        setUser({
+          id: payload.id,
+          email: payload.email,
+          role: payload.role,
+          name: payload.name || null,
+        });
+    } catch {
+      // ignore
+    }
+  }, []);
+
   if (isNavLoading) {
     return (
       <div className="flex sm:flex-row flex-col justify-between items-center px-6 py-3 sm:py-0 bg-[#1f1c2c] sm:h-[62px] h-[110px] gap-2 box-border w-full">
         <div className="w-full sm:w-20 h-6 bg-[linear-gradient(90deg,#2c2541_25%,#3d3559_50%,#2c2541_75%)] bg-[length:200%_100%] animate-[shimmer_1.5s_infinite_linear] rounded-full"></div>
         <div className="w-full sm:w-[65%] h-[38px] bg-[linear-gradient(90deg,#2c2541_25%,#3d3559_50%,#2c2541_75%)] bg-[length:200%_100%] animate-[shimmer_1.5s_infinite_linear] rounded-full"></div>
-        <style>{`
-          @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        `}</style>
+        <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
       </div>
     );
   }
 
   return (
     <>
-      <style>{`
-        @keyframes fadeIn { to { opacity: 1; } }
-        @keyframes cardShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-      `}</style>
+      <style>{`@keyframes fadeIn { to { opacity: 1; } } @keyframes cardShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
 
       <nav className="fixed top-0 left-0 z-[999] flex flex-col sm:flex-row sm:justify-between sm:items-center px-4 py-3 sm:py-0 sm:h-[62px] gap-3 sm:gap-4 bg-[linear-gradient(135deg,#1f1c2c_0%,#928dab_100%)] text-white shadow-[0_4px_15px_rgba(0,0,0,0.2)] font-['Segoe_UI',Tahoma,Geneva,Verdana,sans-serif] animate-[fadeIn_0.5s_ease-out_forwards] opacity-0 box-border w-full">
         <div className="flex justify-between items-center w-full sm:w-auto gap-4">
@@ -126,18 +161,12 @@ export default function Navbar() {
           </div>
 
           <div className="flex gap-1 sm:gap-3 items-center shrink-0 sm:hidden">
-            <Link
-              to="/login"
-              className="inline-flex items-center justify-center h-[34px] px-3 text-xs font-semibold rounded-full bg-transparent text-[#e0e0e0] hover:text-white hover:bg-white/10 transition-all duration-200"
-            >
-              Login
-            </Link>
-            <Link
-              to="/register"
+            <button
+              onClick={openLogin}
               className="inline-flex items-center justify-center h-[34px] px-3 text-xs font-semibold rounded-full bg-white/20 border border-solid border-white/40 hover:bg-white hover:text-[#1f1c2c] transition-all duration-200"
             >
-              Register
-            </Link>
+              Sign in
+            </button>
           </div>
         </div>
 
@@ -176,21 +205,59 @@ export default function Navbar() {
           </form>
 
           <div className="hidden sm:flex gap-3 items-center shrink-0">
-            <Link
-              to="/login"
-              className="inline-flex items-center justify-center h-[38px] px-4 text-sm font-semibold rounded-full bg-transparent text-[#e0e0e0] hover:text-white hover:bg-white/10 transition-all duration-200"
-            >
-              Login
-            </Link>
-            <Link
-              to="/register"
-              className="inline-flex items-center justify-center h-[38px] px-4 text-sm font-semibold rounded-full bg-white/20 border border-solid border-white/40 hover:bg-white hover:text-[#1f1c2c] transition-all duration-200"
-            >
-              Register
-            </Link>
+            {user?.role === "admin" && (
+              <button
+                onClick={openProductCreate}
+                className="inline-flex items-center justify-center h-[38px] px-4 text-sm font-semibold rounded-full bg-white/20 border border-solid border-white/40 hover:bg-white hover:text-[#1f1c2c] transition-all duration-200"
+                aria-label="Add Product"
+              >
+                <FaPlus style={{ marginRight: 8 }} />
+                Add Product
+              </button>
+            )}
+
+            {!user && (
+              <>
+                <button
+                  onClick={openLogin}
+                  className="inline-flex items-center justify-center h-[38px] px-4 text-sm font-semibold rounded-full bg-white/20 border border-solid border-white/40 hover:bg-white hover:text-[#1f1c2c] transition-all duration-200"
+                >
+                  Sign in
+                </button>
+              </>
+            )}
           </div>
         </div>
       </nav>
+
+      {showAuthModal && (
+        <LoginModal
+          onClose={() => setShowAuthModal(false)}
+          onSignedIn={(profile) => {
+            handleSignedIn(profile);
+            setShowAuthModal(false);
+          }}
+        />
+      )}
+
+      {showProductModal && user?.role === "admin" && (
+        <ProductCreateModal
+          token={localStorage.getItem("token")}
+          onClose={closeProductCreate}
+          onCreated={() => {
+            // Refresh quick search results if visible
+            if (query.trim()) {
+              // force effect to re-run by navigating to same route
+              navigate(
+                ` /search?q=${encodeURIComponent(query.trim())}`.replace(
+                  " ",
+                  "",
+                ),
+              );
+            }
+          }}
+        />
+      )}
 
       {query.trim() && (
         <div className="pt-[140px] sm:pt-[85px] min-h-screen bg-[#1f1c2c] text-white px-6 pb-12 transition-all duration-300">
@@ -224,11 +291,7 @@ export default function Navbar() {
                 return (
                   <div
                     key={product.id || product._id}
-                    className={`bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 flex flex-col justify-between transition-all duration-200 group ${
-                      isInStock
-                        ? "hover:scale-[1.02] hover:bg-white/15"
-                        : "opacity-50 select-none"
-                    }`}
+                    className={`bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 flex flex-col justify-between transition-all duration-200 group ${isInStock ? "hover:scale-[1.02] hover:bg-white/15" : "opacity-50 select-none"}`}
                   >
                     <div className="relative">
                       <img
@@ -237,9 +300,7 @@ export default function Navbar() {
                           "https://via.placeholder.com/300?text=No+Image"
                         }
                         alt={product.name}
-                        className={`w-full h-40 object-cover rounded-xl transition-transform duration-300 ${
-                          isInStock && "group-hover:scale-105"
-                        }`}
+                        className={`w-full h-40 object-cover rounded-xl transition-transform duration-300 ${isInStock && "group-hover:scale-105"}`}
                       />
                       {!isInStock && (
                         <span className="absolute top-2 right-2 bg-black/70 text-white text-xs font-bold px-2 py-1 rounded-full">
@@ -252,11 +313,7 @@ export default function Navbar() {
                     </h3>
                     <p className="text-[#ff416c] font-bold">${product.price}</p>
                     <span
-                      className={`text-[0.7rem] font-bold tracking-wide uppercase px-2 py-0.5 rounded self-start mt-2 ${
-                        isInStock
-                          ? "bg-green-500/20 text-green-400"
-                          : "bg-red-500/20 text-red-400"
-                      }`}
+                      className={`text-[0.7rem] font-bold tracking-wide uppercase px-2 py-0.5 rounded self-start mt-2 ${isInStock ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}
                     >
                       {isInStock ? "Available" : "Unavailable"}
                     </span>

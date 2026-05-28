@@ -1,27 +1,43 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchOrderReports } from "../services/api";
+import { useNavigate } from 'react-router-dom';
 
 export default function ReportsPage() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const loadReports = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('Admins only. Please sign in with an admin account.');
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await fetchOrderReports();
+        const response = await fetchOrderReports(token);
         setReports(response.data);
       } catch (err) {
         console.error("Unable to load order reports:", err);
-        setError("Unable to load order reports. Please try again later.");
+        if (err?.response?.status === 403) {
+          setError('Access denied. Admins only.');
+        } else if (err?.response?.status === 401) {
+          setError('Unauthorized. Please sign in.');
+        } else {
+          setError("Unable to load order reports. Please try again later.");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     loadReports();
-  }, []);
+  }, [navigate]);
 
   return (
     <div
