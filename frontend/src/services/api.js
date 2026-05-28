@@ -16,6 +16,7 @@ export const signInWithGoogle = (id_token) =>
 export const registerUser = (payload) => api.post("/auth/register", payload);
 export const loginUser = (payload) => api.post("/auth/login", payload);
 
+
 export const createProduct = (payload, token) =>
   api.post("/products", payload, {
     headers: { Authorization: `Bearer ${token}` },

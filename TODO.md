@@ -1,13 +1,18 @@
-# TODO
+# Project TODO
 
-- [ ] Backend: add passwordHash to User model
-- [ ] Backend: add register/login endpoints to auth routes + controller
-- [ ] Backend: protect product creation route with requireAdmin
-- [ ] Backend: add bcrypt dependency
-- [ ] Frontend: update LoginModal to support login/register by email/password
-- [ ] Frontend: update Navbar to open login vs register modes
-- [ ] Frontend: add ProductCreateModal (admin-only) and wire to Navbar
-- [ ] Frontend: extend api.js with login/register/createProduct
-- [ ] Frontend: add category dropdown filtering and include category in product fetch
-- [ ] Run backend + frontend and verify flows end-to-end
+- [x] Backend: replace placeholder DB credentials in `backend/src/config/db.js` with env-based configuration
+- [x] Backend: wire auth routes in `backend/src/routes/auth.js` for `POST /register` and `POST /login`
+- [x] Frontend: update `frontend/src/components/LoginModal.jsx` to support email/password register + login (and keep Google sign-in)
+- [ ] Frontend: update `frontend/src/services/api.js` if any endpoint wiring mismatch exists (verify shapes)
+- [x] Frontend: harden token payload decoding in `frontend/src/components/Navbar.jsx`
+- [x] Backend: tighten JWT secret handling in `backend/src/middleware/authMiddleware.js`
+
+- [ ] Smoke check: verify endpoints manually (curl / browser):
+  - [ ] `GET /api`
+  - [ ] `POST /api/auth/google`
+  - [ ] `POST /api/auth/register`
+  - [ ] `POST /api/auth/login`
+  - [ ] Admin: `POST /api/products`
+  - [ ] Order: `POST /api/orders`
+  - [ ] Admin: `GET /api/orders/report`
 

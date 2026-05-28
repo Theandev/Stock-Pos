@@ -96,13 +96,24 @@ export default function Navbar() {
     setUser(profile);
   }, []);
 
+  function decodeBase64Url(base64url) {
+    // base64url -> base64
+    const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64 + "===".slice((base64.length + 3) % 4);
+    return atob(padded);
+  }
+
   // Load logged-in user from existing token (best-effort; role is in token payload).
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
+      const parts = token.split(".");
+      if (parts.length < 2) return;
+      const payloadRaw = decodeBase64Url(parts[1]);
+      const payload = JSON.parse(payloadRaw);
+
       if (payload?.role)
         setUser({
           id: payload.id,
@@ -114,6 +125,7 @@ export default function Navbar() {
       // ignore
     }
   }, []);
+
 
   if (isNavLoading) {
     return (

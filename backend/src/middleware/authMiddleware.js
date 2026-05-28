@@ -22,8 +22,14 @@ export const verifyToken = (req, res, next) => {
   const token = extractTokenFromRequest(req);
   if (!token) return res.status(401).json({ error: 'Authentication required' });
 
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    console.error('JWT_SECRET is not set');
+    return res.status(500).json({ error: 'Server misconfigured' });
+  }
+
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET || 'change_this_secret');
+    const payload = jwt.verify(token, secret);
     req.user = normalizePayload(payload);
     return next();
   } catch (error) {
@@ -31,6 +37,7 @@ export const verifyToken = (req, res, next) => {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }
 };
+
 
 export const requireAdmin = (req, res, next) => {
   if (!req.user) return res.status(401).json({ error: 'Not authenticated' });

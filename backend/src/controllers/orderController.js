@@ -1,7 +1,6 @@
 import { Order, OrderItem, Product } from "../models/index.js";
 import sequelize from "../config/db.js";
 
-
 export const createOrder = async (req, res) => {
   const { customerName, email, address, items } = req.body;
 
@@ -26,9 +25,12 @@ export const createOrder = async (req, res) => {
     // Validate + compute totals first (inside transaction to keep stock consistent)
     for (const item of items) {
       const productId = item.productId;
-      if (productId == null) throw new Error('Invalid productId');
+      if (productId == null) throw new Error("Invalid productId");
 
-      const product = await Product.findByPk(productId, { transaction, lock: transaction.LOCK.UPDATE });
+      const product = await Product.findByPk(productId, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
       if (!product) throw new Error(`Product ${productId} not found`);
 
       const quantity = Number(item.quantity);
@@ -56,7 +58,7 @@ export const createOrder = async (req, res) => {
         address,
         totalAmount,
       },
-      { transaction }
+      { transaction },
     );
 
     for (const data of orderItemsData) {
@@ -67,10 +69,10 @@ export const createOrder = async (req, res) => {
           quantity: data.quantity,
           price: data.price,
         },
-        { transaction }
+        { transaction },
       );
 
-      await Product.decrement('stock', {
+      await Product.decrement("stock", {
         by: data.quantity,
         where: { id: data.productId },
         transaction,
@@ -79,11 +81,14 @@ export const createOrder = async (req, res) => {
 
     await transaction.commit();
 
-    return res.status(201).json({ message: 'Order placed successfully', orderId: order.id });
+    return res
+      .status(201)
+      .json({ message: "Order placed successfully", orderId: order.id });
   } catch (error) {
     await transaction.rollback();
-    console.error('Order creation failed:', error);
-    return res.status(400).json({ error: error.message || 'Unable to place order' });
+    console.error("Order creation failed:", error);
+    return res
+      .status(400)
+      .json({ error: error.message || "Unable to place order" });
   }
 };
-
