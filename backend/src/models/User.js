@@ -5,9 +5,12 @@ const User = sequelize.define('User', {
   id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
   name: { type: DataTypes.STRING },
   email: { type: DataTypes.STRING, allowNull: false, unique: true },
+  // For Google sign-in
   googleId: { type: DataTypes.STRING, unique: true, field: 'google_id' },
   role: { type: DataTypes.ENUM('admin', 'user'), allowNull: false, defaultValue: 'user' },
   picture: { type: DataTypes.STRING },
+  // For email/password sign-in
+  passwordHash: { type: DataTypes.STRING, field: 'password_hash' },
 }, {
   tableName: 'users',
   timestamps: true,
@@ -16,3 +19,4 @@ const User = sequelize.define('User', {
 });
 
 export default User;
+

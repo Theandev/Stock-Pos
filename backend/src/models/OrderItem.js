@@ -3,6 +3,8 @@ import sequelize from '../config/db.js';
 
 const OrderItem = sequelize.define('OrderItem', {
   id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+  order_id: { type: DataTypes.INTEGER, allowNull: false },
+  product_id: { type: DataTypes.INTEGER, allowNull: false },
   quantity: { type: DataTypes.INTEGER, allowNull: false },
   price: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
 }, {
@@ -11,5 +13,6 @@ const OrderItem = sequelize.define('OrderItem', {
   createdAt: 'created_at',
   updatedAt: false,
 });
+
 
 export default OrderItem;
