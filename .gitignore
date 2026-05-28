@@ -1,0 +1,19 @@
+# History & Backup Files
+.history/
+*.bak
+*.swp
+*~
+
+# Hidden Files & Folders
+.DS_Store
+.vscode/
+.idea/
+.env
+
+# Database Files
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.mdb
+*.accdb
